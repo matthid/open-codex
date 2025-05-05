@@ -6,6 +6,7 @@ dist/
 build/
 out/
 storybook-static/
+.run
 
 # ignore README for publishing
 codex-cli/README.md
