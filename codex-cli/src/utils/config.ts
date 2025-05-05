@@ -89,7 +89,7 @@ function getAPIKeyForProviderOrExit(provider: string): string {
 function baseURLForProvider(provider: string): string {
   switch (provider) {
     case "openai":
-      return "https://api.openai.com/v1";
+      return process.env["OPENAI_BASE_URL"] ??  "https://api.openai.com/v1";
     case "ollama":
       return process.env["OLLAMA_BASE_URL"] ?? "http://localhost:11434/v1";
     case "gemini":
@@ -383,30 +383,16 @@ export const loadConfig = (
       ? storedConfig.model.trim()
       : undefined;
 
-  const storedBaseURL =
-    storedConfig.baseURL && storedConfig.baseURL.trim() !== ""
-      ? storedConfig.baseURL.trim()
-      : undefined;
+  const derivedProvider = options.provider ?? storedProvider ?? DEFAULT_PROVIDER;
 
-  const providerOrDefault = options.provider ?? DEFAULT_PROVIDER;
-
-  const derivedBaseURL = storedProvider
-    ? baseURLForProvider(storedProvider)
-    : storedBaseURL ?? baseURLForProvider(providerOrDefault);
-
-  const derivedModels = storedProvider
-    ? defaultModelsForProvider(storedProvider)
-    : defaultModelsForProvider(providerOrDefault);
-
+  const derivedModels = defaultModelsForProvider(derivedProvider);
   const derivedModel =
     storedModel ||
     (options.isFullContext
       ? derivedModels?.fullContext
       : derivedModels?.agentic);
-
-  const derivedProvider = storedProvider ?? providerOrDefault;
-  const apiKeyForProvider =
-    options.forceApiKeyForTest ?? getAPIKeyForProviderOrExit(derivedProvider);
+  const apiKeyForProvider = options.forceApiKeyForTest ?? getAPIKeyForProviderOrExit(derivedProvider);
+  const derivedBaseURL = baseURLForProvider(derivedProvider);
 
   const config: AppConfig = {
     model: derivedModel,
